@@ -232,12 +232,15 @@ end
 function DrawTileMap()
   
   for k, v in ipairs(tileMap) do
-    lg.draw(tileSprites, v.quad, v.x+(v.offsetX*tileSize)+currentPosX, v.y+(v.offsetY*tileSize)+currentPosY, v.rot, scale, scale)
-    for k1, v1 in ipairs(v.edges) do
-      lg.draw(edgeSprites, v1.quad, v.x+currentPosX+(v1.ox*tileSize), v.y+currentPosY+(v1.oy*tileSize), v1.rot, scale, scale)
-    end
-    if v.overlayQuad ~= nil then
-      lg.draw(itemSprites, v.overlayQuad, v.ox+currentPosX, v.oy+currentPosY, v.rotO, scale, scale)
+    if v.x+currentPosX > -128 and v.y+currentPosY > -128 and v.x+currentPosX  < 1000 and v.y+currentPosY < 800 then
+      
+      lg.draw(tileSprites, v.quad, v.x+(v.offsetX*tileSize)+currentPosX, v.y+(v.offsetY*tileSize)+currentPosY, v.rot, scale, scale)
+      for k1, v1 in ipairs(v.edges) do
+        lg.draw(edgeSprites, v1.quad, v.x+currentPosX+(v1.ox*tileSize), v.y+currentPosY+(v1.oy*tileSize), v1.rot, scale, scale)
+      end
+      if v.overlayQuad ~= nil then
+        lg.draw(itemSprites, v.overlayQuad, v.ox+currentPosX, v.oy+currentPosY, v.rotO, scale, scale)
+      end
     end
   end
   
@@ -718,7 +721,7 @@ function C.keyPressed(key)
   if key == "w" and CheckCanWalk(currentTileId - 50) then
     currentPosY = currentPosY + tileSize
     currentTileId = currentTileId - 50
-    ExecuteAction(currentTileId)
+    --ExecuteAction(currentTileId)
   elseif key == "a" and CheckCanWalk(currentTileId - 1) then
     currentPosX = currentPosX + tileSize
     currentTileId = currentTileId - 1
