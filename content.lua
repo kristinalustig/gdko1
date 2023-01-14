@@ -15,6 +15,7 @@ local biomeTwo
 local biomeThree
 local plants
 local footPrints
+local playerQuads
 
 local homeBase
 local altBase
@@ -25,6 +26,7 @@ local uiOverlay
 
 local mapTable
 local tileMap
+local dataMap
 
 local TileType
 local Biome
@@ -39,6 +41,10 @@ local currentPosY
 local scale
 local tileSheetWidth
 local tileSheetHeight
+
+local px
+local py
+local onTile
 
 function C.init()
   
@@ -75,7 +81,7 @@ function C.init()
     Camp = 5
   }
   
-  tileSize = 64
+  tileSize = 64 * (scale*2)
   
   biomeOne = {}
   biomeTwo = {}
@@ -87,6 +93,7 @@ function C.init()
   biomeThree.tiles = {}
   plants = {}
   footPrints = {}
+  playerQuads = {}
   
   uiOverlay = lg.newImage("/assets/ui.png")
   tileSprites = lg.newImage("/assets/tileSprites.png")
@@ -130,12 +137,18 @@ function C.init()
   
   plants = I.initSprites(0, 0, 128, 128, 7, 8, 2304, 896)
   
+  playerQuads = I.initSprites(0, 0, 76, 136, 2, 4, 304, 272)
+  
   mapTable = M.getMap()
   
   InitTileMap()
   
-  currentPosX = 0
-  currentPosY = 0
+  currentPosX = -2688
+  currentPosY = -2816
+  
+  px = love.graphics.getWidth()/2 - 110
+  py = love.graphics.getHeight()/2-(136/2)
+  currentTileId = 1224
 
 end
 
@@ -143,15 +156,19 @@ end
 function C.draw()
   
   DrawTileMap()
+  DrawPlayer()
+  lg.draw(uiOverlay, 0, 0, 0, .5, .5)
   
 end
 
 function InitTileMap()
   
   tileMap = {}
+  dataMap = {}
   
   local xLoc = 0
   local yLoc = 0
+  local id = 1
   for k, v in ipairs(mapTable) do
     for k1, v1 in ipairs(v) do
       local tileType = FindTileType(v1)
@@ -166,13 +183,18 @@ function InitTileMap()
       local edges = {}
       local overlay = GetOverlay(v1)
       local overlayQuad = nil
+      local canWalk = false
       rot, offsetX, offsetY, tileType, edges = FindTileDir(k, k1, biome, tileType)
       local quad = GetQuad(tileType, biome)
       if overlay ~= nil then
         overlayQuad, rotO, offsetXO, offsetYO = GetOverlayQuad(overlay, biome, v1, k, k1)
       end
       local edgeQuads = FindEdgeQuads(edges, tileType, biome)
+      if tileType == TileType.Plain and overlay ~= Overlay.Rock and overlay ~= Overlay.Cliff and overlay ~= Overlay.Tree then
+        canWalk = true
+      end
       table.insert(tileMap, {
+          id = id,
           x = xLoc,
           y = yLoc,
           offsetX = offsetX,
@@ -185,7 +207,14 @@ function InitTileMap()
           rotO = rotO,
           edges = edgeQuads
         })
+      table.insert(dataMap, {
+          id = id,
+          r = k,
+          c = k1,
+          canWalk = canWalk
+          })
       xLoc = xLoc + tileSize
+      id = id + 1
     end
     yLoc = yLoc + tileSize
     xLoc = 0
@@ -194,17 +223,21 @@ function InitTileMap()
 end
   
 
-
+function DrawPlayer()
+  
+  lg.draw(playerSprites, playerQuads[1], px, py, 0, scale, scale)
+  
+end
 
 function DrawTileMap()
   
   for k, v in ipairs(tileMap) do
-    lg.draw(tileSprites, v.quad, v.x+(v.offsetX*tileSize)+currentPosX, v.y+(v.offsetY*tileSize)+currentPosY, v.rot, .5, .5)
+    lg.draw(tileSprites, v.quad, v.x+(v.offsetX*tileSize)+currentPosX, v.y+(v.offsetY*tileSize)+currentPosY, v.rot, scale, scale)
     for k1, v1 in ipairs(v.edges) do
-      lg.draw(edgeSprites, v1.quad, v.x+currentPosX+(v1.ox*tileSize), v.y+currentPosY+(v1.oy*tileSize), v1.rot, .5, .5)
+      lg.draw(edgeSprites, v1.quad, v.x+currentPosX+(v1.ox*tileSize), v.y+currentPosY+(v1.oy*tileSize), v1.rot, scale, scale)
     end
     if v.overlayQuad ~= nil then
-      lg.draw(itemSprites, v.overlayQuad, v.ox+currentPosX, v.oy+currentPosY, v.rotO, .5, .5)
+      lg.draw(itemSprites, v.overlayQuad, v.ox+currentPosX, v.oy+currentPosY, v.rotO, scale, scale)
     end
   end
   
@@ -660,16 +693,41 @@ function FindTileDir(r, c, b, t)
 end
 
 
+
+function CheckCanWalk(id)
+  
+  return dataMap[id].canWalk
+  
+end
+
+function ExecuteAction(id)
+  
+  local dTile = dataMap[id]
+  local s = mapTable[dTile.r][dTile.c]
+  if string.find(s, "p") then
+    local plant = string.sub(s, 1, string.find(s, "p")-1)
+    print(plant)
+  end
+  
+end
+
+--function GetPlantInfo(id)
+
 function C.keyPressed(key)
   
-  if key == "w" then
+  if key == "w" and CheckCanWalk(currentTileId - 50) then
     currentPosY = currentPosY + tileSize
-  elseif key == "a" then
+    currentTileId = currentTileId - 50
+    ExecuteAction(currentTileId)
+  elseif key == "a" and CheckCanWalk(currentTileId - 1) then
     currentPosX = currentPosX + tileSize
-  elseif key == "s" then
+    currentTileId = currentTileId - 1
+  elseif key == "s" and CheckCanWalk(currentTileId + 50) then
     currentPosY = currentPosY - tileSize
-  elseif key == "d" then
+    currentTileId = currentTileId + 50
+  elseif key == "d" and CheckCanWalk(currentTileId + 1) then
     currentPosX = currentPosX - tileSize
+    currentTileId = currentTileId + 1
   end
   
 end

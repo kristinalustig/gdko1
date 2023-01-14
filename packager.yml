@@ -1,0 +1,5 @@
+name: gdko1
+version: 0.0.1
+assets:
+  - "*.lua"
+  - assets/**/*
