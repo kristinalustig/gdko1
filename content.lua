@@ -7,6 +7,7 @@ C = {}
 local tileSprites
 local itemSprites
 local playerSprites
+local edgeSprites
 
 --store the quads for each biome + for plants etc.
 local biomeOne
@@ -28,6 +29,7 @@ local tileMap
 local TileType
 local Biome
 local Overlay
+local Edge
 
 local tileSize
 
@@ -42,24 +44,27 @@ function C.init()
   
   scale = 1
   tileSheetWidth = 1536
-  tileSheetHeight = 1792
+  tileSheetHeight = 1280
+  edgeSheetWidth = 768
+  edgeSheetHeight = 1152
   
   TileType = {
     Plain = 1,
-    Edge = 2,
-    River = 3,
-    Lake = 4,
-    EdgeCorner = 5,
-    BiomeEdge = 6,
-    BiomeEdgeCorner = 7,
-    BiomeEdgeWater = 8,
-    BiomeWaterCorner = 9
+    River = 2,
+    Lake = 3
   }
   
   Biome = {
     Grass = 1,
     Dark = 2,
     Snow = 3
+  }
+  
+  Edge = {
+    Top = 1,
+    Left = 2,
+    Right = 3,
+    Bottom = 4
   }
   
   Overlay = {
@@ -76,6 +81,8 @@ function C.init()
   biomeTwo = {}
   biomeThree = {}
   biomeOne.tiles = {}
+  biomeOne.tiles.dark = {}
+  biomeOne.tiles.snow = {}
   biomeTwo.tiles = {}
   biomeThree.tiles = {}
   plants = {}
@@ -85,35 +92,38 @@ function C.init()
   tileSprites = lg.newImage("/assets/tileSprites.png")
   itemSprites = lg.newImage("/assets/overlaySprites.png")
   playerSprites = lg.newImage("/assets/playerSprites.png")
+  edgeSprites = lg.newImage("/assets/edgeSprites.png")
   
   --grass
-  biomeOne.tiles.plain = I.initSprites(0, 0, 128, 128, 9, 1, tileSheetWidth, tileSheetHeight)
-  biomeOne.tiles.edge = I.initSprites(128, 0, 128, 128, 9, 1, tileSheetWidth, tileSheetHeight)
-  biomeOne.tiles.waterStill = I.initSprites(256, 0, 128, 128, 7, 2, tileSheetWidth, tileSheetHeight)
-  biomeOne.tiles.waterRunning = I.initSprites(256, 640, 128, 128, 7, 2, tileSheetWidth, tileSheetHeight)
-  biomeOne.tiles.corner = I.initSprites(0, 1280, 128, 128, 2, 2, tileSheetWidth, tileSheetHeight)
-  biomeOne.tiles.biomeEdge = I.initSprites(0, 1536, 128, 128, 2, 2, tileSheetWidth, tileSheetHeight)
-  biomeOne.tiles.waterEdge = I.initSprites(256, 1536, 128, 128, 2, 2, tileSheetWidth, tileSheetHeight)
+  biomeOne.tiles.plain = I.initSprites(0, 0, 128, 128, 9, 2, tileSheetWidth, tileSheetHeight)
+  biomeOne.tiles.waterStill = I.initSprites(256, 0, 128, 128, 5, 2, tileSheetWidth, tileSheetHeight)
+  biomeOne.tiles.waterRunning = I.initSprites(256, 640, 128, 128, 6, 2, tileSheetWidth, tileSheetHeight)
+  biomeOne.tiles.edgeWater = I.initSprites(0, 256, 128, 128, 4, 2, edgeSheetWidth, edgeSheetHeight)
+  biomeOne.tiles.edgeWaterCorner = I.initSprites(0, 0, 128, 128, 2, 2, edgeSheetWidth, edgeSheetHeight)
+  biomeOne.tiles.dark.edge = I.initSprites(0, 768, 128, 128, 2, 2, edgeSheetWidth, edgeSheetHeight)
+  biomeOne.tiles.snow.edge = I.initSprites(256, 768, 128, 128, 2, 2, edgeSheetWidth, edgeSheetHeight)
+  biomeOne.tiles.dark.edgeWater = I.initSprites(640, 768, 128, 128, 3, 1, edgeSheetWidth, edgeSheetHeight)
+  biomeOne.tiles.snow.edgeWater = I.initSprites(512, 768, 128, 128, 3, 1, edgeSheetWidth, edgeSheetHeight)
   biomeOne.cliffs = I.initSprites(1024, 0, 128, 128, 7, 1, 2304, 896)
   biomeOne.rocks = I.initSprites(1408, 0, 128, 128, 7, 1, 2304, 896)
   biomeOne.trees = I.initSprites(1792, 0, 128, 128, 7, 1, 2304, 896)
   
   --dark
-  biomeTwo.tiles.plain = I.initSprites(512, 0, 128, 128, 9, 1, tileSheetWidth, tileSheetHeight)
-  biomeTwo.tiles.edge = I.initSprites(640, 0, 128, 128, 9, 1, tileSheetWidth, tileSheetHeight)
-  biomeTwo.tiles.waterStill = I.initSprites(768, 0, 128, 128, 7, 2, tileSheetWidth, tileSheetHeight)
-  biomeTwo.tiles.waterRunning = I.initSprites(768, 640, 128, 128, 7, 2, tileSheetWidth, tileSheetHeight)
-  biomeTwo.tiles.corner = I.initSprites(512, 1280, 128, 128, 2, 2, tileSheetWidth, tileSheetHeight)
+  biomeTwo.tiles.plain = I.initSprites(512, 0, 128, 128, 9, 2, tileSheetWidth, tileSheetHeight)
+  biomeTwo.tiles.waterStill = I.initSprites(768, 0, 128, 128, 5, 2, tileSheetWidth, tileSheetHeight)
+  biomeTwo.tiles.waterRunning = I.initSprites(768, 640, 128, 128, 6, 2, tileSheetWidth, tileSheetHeight)
+  biomeTwo.tiles.edgeWater = I.initSprites(384, 256, 128, 128, 4, 2, edgeSheetWidth, edgeSheetHeight)
+  biomeTwo.tiles.edgeWaterCorner = I.initSprites(384, 0, 128, 128, 2, 2, edgeSheetWidth, edgeSheetHeight)
   biomeTwo.cliffs = I.initSprites(1152, 0, 128, 128, 7, 1, 2304, 896)
   biomeTwo.rocks = I.initSprites(1536, 0, 128, 128, 7, 1, 2304, 896)
   biomeTwo.trees = I.initSprites(1920, 0, 128, 128, 7, 1, 2304, 896)
   
   --snow
-  biomeThree.tiles.plain = I.initSprites(1024, 0, 128, 128, 9, 1, tileSheetWidth, tileSheetHeight)
-  biomeThree.tiles.edge = I.initSprites(1152, 0, 128, 128, 9, 1, tileSheetWidth, tileSheetHeight)
-  biomeThree.tiles.waterStill = I.initSprites(1280, 0, 128, 128, 7, 2, tileSheetWidth, tileSheetHeight)
-  biomeThree.tiles.waterRunning = I.initSprites(1280, 640, 128, 128, 7, 2, tileSheetWidth, tileSheetHeight)
-  biomeThree.tiles.corner = I.initSprites(1024, 1280, 128, 128, 2, 2, tileSheetWidth, tileSheetHeight)
+  biomeThree.tiles.plain = I.initSprites(1024, 0, 128, 128, 9, 2, tileSheetWidth, tileSheetHeight)
+  biomeThree.tiles.waterStill = I.initSprites(1280, 0, 128, 128, 6, 2, tileSheetWidth, tileSheetHeight)
+  biomeThree.tiles.waterRunning = I.initSprites(1280, 640, 128, 128, 6, 2, tileSheetWidth, tileSheetHeight)
+  biomeThree.tiles.edgeWater = I.initSprites(512, 256, 128, 128, 4, 2, edgeSheetWidth, edgeSheetHeight)
+  biomeThree.tiles.edgeWaterCorner = I.initSprites(512, 0, 128, 128, 2, 2, edgeSheetWidth, edgeSheetHeight)
   biomeThree.cliffs = I.initSprites(1280, 0, 128, 128, 7, 1, 2304, 896)
   biomeThree.rocks = I.initSprites(1664, 0, 128, 128, 7, 1, 2304, 896)
   biomeThree.trees = I.initSprites(2048, 0, 128, 128, 7, 1, 2304, 896)
@@ -153,22 +163,27 @@ function InitTileMap()
       local offsetY = 0
       local offsetYO = 0
       local biomeEdge = nil
+      local edges = {}
       local overlay = GetOverlay(v1)
       local overlayQuad = nil
-      rot, offsetX, offsetY, tileType, biomeEdge = FindTileDir(k, k1, biome, tileType)
-      local quad = GetQuad(tileType, biome, biomeEdge)
+      rot, offsetX, offsetY, tileType, edges = FindTileDir(k, k1, biome, tileType)
+      local quad = GetQuad(tileType, biome)
       if overlay ~= nil then
         overlayQuad, rotO, offsetXO, offsetYO = GetOverlayQuad(overlay, biome, v1, k, k1)
       end
+      local edgeQuads = FindEdgeQuads(edges, tileType, biome)
       table.insert(tileMap, {
-          x = xLoc + (offsetX*tileSize),
-          y = yLoc + (offsetY*tileSize),
+          x = xLoc,
+          y = yLoc,
+          offsetX = offsetX,
+          offsetY = offsetY,
           quad = quad,
           rot = rot,
           overlayQuad = overlayQuad,
           ox = xLoc + (offsetXO*tileSize),
           oy = yLoc + (offsetYO*tileSize),
           rotO = rotO,
+          edges = edgeQuads
         })
       xLoc = xLoc + tileSize
     end
@@ -184,10 +199,202 @@ end
 function DrawTileMap()
   
   for k, v in ipairs(tileMap) do
-    lg.draw(tileSprites, v.quad, v.x+currentPosX, v.y+currentPosY, v.rot, .5, .5)
+    lg.draw(tileSprites, v.quad, v.x+(v.offsetX*tileSize)+currentPosX, v.y+(v.offsetY*tileSize)+currentPosY, v.rot, .5, .5)
+    for k1, v1 in ipairs(v.edges) do
+      lg.draw(edgeSprites, v1.quad, v.x+currentPosX+(v1.ox*tileSize), v.y+currentPosY+(v1.oy*tileSize), v1.rot, .5, .5)
+    end
     if v.overlayQuad ~= nil then
       lg.draw(itemSprites, v.overlayQuad, v.ox+currentPosX, v.oy+currentPosY, v.rotO, .5, .5)
     end
+  end
+  
+end
+
+function FindEdgeQuads(e, t, biome)
+  
+  local edgeQuads = {}
+  local rot = 0
+  local ox = 0
+  local oy = 0
+  local tileType = t
+  local corner = false
+  local foundWater = true
+  local b = biome
+  
+  --water
+  --topleft
+  if tileType == TileType.Plain then
+    if e.wt and e.wl then
+      rot = math.rad(180)
+      ox = 1
+      oy = 1
+      corner = true
+      if e.btt ~= nil then
+        b = e.btt
+      end
+    --topright
+    elseif e.wt and e.wr then
+      rot = math.rad(-90)
+      oy = 1
+      corner = true
+      if e.btt ~= nil then
+        b = e.btt
+      end
+    --bottomleft
+    elseif e.wb and e.wl then
+      rot = math.rad(90)
+      ox = 1
+      corner = true
+      if e.bbt ~= nil then
+        b = e.bbt
+      end
+    --bottomright
+    elseif e.wb and e.wr then
+      corner = true
+      if e.bbt ~= nil then
+        b = e.bbt
+      end
+    --top
+    elseif e.wt then
+      rot = math.rad(-90)
+      oy = 1
+      if e.btt ~= nil then
+        b = e.btt
+      end
+    --bottom
+    elseif e.wb then
+      rot = math.rad(90)
+      ox = 1
+      if e.bbt ~= nil then
+        b = e.bbt
+      end
+    --left
+    elseif e.wl then
+      rot = math.rad(180)
+      ox = 1
+      oy = 1
+      if e.blt ~= nil then
+        b = e.blt
+      end
+    --right
+    elseif e.wr then
+      if e.brt ~= nil then
+        b = e.brt
+      end
+    else
+      foundWater = false
+    end
+    
+    local bQuad = GetBiomeTable(b)
+    
+    local q = nil
+    if foundWater and corner then
+      q = bQuad.tiles.edgeWaterCorner[love.math.random(4)]
+    elseif foundWater then
+      q = bQuad.tiles.edgeWater[love.math.random(8)]
+    end
+    
+    if q ~= nil then
+      table.insert(edgeQuads, {
+          quad = q,
+          rot = rot,
+          ox = ox,
+          oy = oy})
+    end
+  end
+  
+  if biome == Biome.Grass then
+    if tileType == TileType.Plain then
+      if e.bt and not e.wt then
+        table.insert(edgeQuads, {
+          quad = GetBiomeEdgeType(e.btt).edge[love.math.random(4)],
+          rot = math.rad(-90),
+          ox = 0,
+          oy = 1
+          })
+      end
+      if e.bl and not e.wl then
+        table.insert(edgeQuads, {
+          quad = GetBiomeEdgeType(e.blt).edge[love.math.random(4)],
+          rot = math.rad(180),
+          ox = 1,
+          oy = 1
+          })
+      end
+      if e.br and not e.wr then
+        table.insert(edgeQuads, {
+          quad = GetBiomeEdgeType(e.brt).edge[love.math.random(4)],
+          rot = 0,
+          ox = 0,
+          oy = 0
+          })
+      end
+      if e.bb and not e.wb then
+        table.insert(edgeQuads, {
+          quad = GetBiomeEdgeType(e.bbt).edge[love.math.random(4)],
+          rot = math.rad(90),
+          ox = 1,
+          oy = 0
+          })
+      end
+    else
+      if e.bt and e.wt then
+        table.insert(edgeQuads, {
+          quad = GetBiomeEdgeType(e.btt).edgeWater[love.math.random(3)],
+          rot = math.rad(-90),
+          ox = 0,
+          oy = 1
+          })
+      end
+      if e.bl and e.wl then
+        table.insert(edgeQuads, {
+          quad = GetBiomeEdgeType(e.blt).edgeWater[love.math.random(3)],
+          rot = math.rad(180),
+          ox = 1,
+          oy = 1
+          })
+      end
+      if e.br and e.wr then
+        table.insert(edgeQuads, {
+          quad = GetBiomeEdgeType(e.brt).edgeWater[love.math.random(3)],
+          rot = 0,
+          ox = 0,
+          oy = 0
+          })
+      end
+      if e.bb and e.wb then
+        table.insert(edgeQuads, {
+          quad = GetBiomeEdgeType(e.bbt).edgeWater[love.math.random(3)],
+          rot = math.rad(90),
+          ox = 1,
+          oy = 0
+          })
+      end
+    end
+  end
+  
+  return edgeQuads
+  
+end
+
+function GetBiomeTable(b)
+  
+  if b == Biome.Snow then
+    return biomeThree
+  elseif b == Biome.Dark then
+    return biomeTwo
+  else
+    return biomeOne
+  end
+  
+end
+
+function GetBiomeEdgeType(b)
+  
+  if b == Biome.Snow then
+    return biomeOne.tiles.snow
+  elseif b == Biome.Dark then
+    return biomeOne.tiles.dark
   end
   
 end
@@ -294,7 +501,7 @@ function GetItem(s)
   
 end
 
-function GetQuad(t, b, be)
+function GetQuad(t, b)
   
   local bQuad = {}
   local q = {}
@@ -308,39 +515,11 @@ function GetQuad(t, b, be)
   end
   
   if t == TileType.River then
-    q = bQuad.tiles.waterRunning[love.math.random(12)]
+    q = bQuad.tiles.waterRunning[love.math.random(#bQuad.tiles.waterRunning)]
   elseif t == TileType.Lake then
-    q = bQuad.tiles.waterStill[love.math.random(12)]
-  elseif t == TileType.Edge then
-    q = bQuad.tiles.edge[love.math.random(9)]
-  elseif t == TileType.EdgeCorner then
-    q = bQuad.tiles.corner[love.math.random(4)]
-  elseif t == TileType.BiomeEdge then 
-    if be == Biome.Snow then
-      q = bQuad.tiles.biomeEdge[2]
-    elseif be == Biome.Dark then
-      q = bQuad.tiles.biomeEdge[1]
-    end
-  elseif t == TileType.BiomeEdgeCorner then
-    if be == Biome.Snow then
-      q = bQuad.tiles.biomeEdge[4]
-    elseif be == Biome.Dark then
-      q = bQuad.tiles.biomeEdge[3]
-    end
-  elseif t == TileType.BiomeEdgeWater then
-    if be == Biome.Snow then
-      q = bQuad.tiles.waterEdge[2]
-    elseif be == Biome.Dark then
-      q = bQuad.tiles.waterEdge[1]
-    end
-  elseif t == TileType.BiomeWaterCorner then
-    if be == Biome.Snow then
-      q = bQuad.tiles.waterEdge[4]
-    elseif be == Biome.Dark then
-      q = bQuad.tiles.waterEdge[3]
-    end
+    q = bQuad.tiles.waterStill[love.math.random(#bQuad.tiles.waterStill)]
   else
-    q = bQuad.tiles.plain[love.math.random(9)]
+    q = bQuad.tiles.plain[love.math.random(#bQuad.tiles.plain)]
   end
   
   return q
@@ -383,188 +562,67 @@ function FindTileDir(r, c, b, t)
   local biomeEdgeRight = false
   local biomeEdgeAbove = false
   local biomeEdgeBelow = false
+  local biomeEdgeLeftType = nil
+  local biomeEdgeRightType = nil
+  local biomeEdgeAboveType = nil
+  local biomeEdgeBelowType = nil
   local offsetX = 0
   local offsetY = 0
   local tileType = t
   local rot = 0
   local biome = b
+  local edges = {}
 
   --above
   if r ~= 1 then
     if string.find(mapTable[r-1][c], "i") or string.find(mapTable[r-1][c], "l") then
-      waterAbove = true -- math.rad(-90), 0, 1
+      waterAbove = true
     end
-    if biome == Biome.Grass then
-      if string.find(mapTable[r-1][c], "s") then
-        biomeEdgeAbove = true
-        biomeEdge = Biome.Snow
-      elseif string.find(mapTable[r-1][c], "d") then
-        biomeEdgeAbove = true
-        biomeEdge = Biome.Dark
-      end
+    if string.find(mapTable[r-1][c], "s") then
+      biomeEdgeAbove = true
+      biomeEdgeAboveType = Biome.Snow
+    elseif string.find(mapTable[r-1][c], "d") then
+      biomeEdgeAbove = true
+      biomeEdgeAboveType = Biome.Dark
     end
   end
   --below
   if r ~= #mapTable then 
     if string.find(mapTable[r+1][c], "i") or string.find(mapTable[r+1][c], "l") then
-      waterBelow = true --return math.rad(90), 1, 0
+      waterBelow = true
     end
-    if biome == Biome.Grass then
-      if string.find(mapTable[r+1][c], "s") then
-        biomeEdgeBelow = true
-        biomeEdge = Biome.Snow
-      elseif string.find(mapTable[r+1][c], "d") then
-        biomeEdgeBelow = true
-        biomeEdge = Biome.Dark
-      end
+    if string.find(mapTable[r+1][c], "s") then
+      biomeEdgeBelow = true
+      biomeEdgeBelowType = Biome.Snow
+    elseif string.find(mapTable[r+1][c], "d") then
+      biomeEdgeBelow = true
+      biomeEdgeBelowType = Biome.Dark
     end
   end
   --left
   if c ~= 1 then
     if string.find(mapTable[r][c-1], "i") or string.find(mapTable[r][c-1], "l") then
-      waterLeft = true -- return math.rad(180), 1, 1
+      waterLeft = true
     end
-    if biome == Biome.Grass then
-      if string.find(mapTable[r][c-1], "s") then
-        biomeEdgeLeft = true
-        biomeEdge = Biome.Snow
-      elseif string.find(mapTable[r][c-1], "d") then
-        biomeEdgeLeft = true
-        biomeEdge = Biome.Dark
-      end
+    if string.find(mapTable[r][c-1], "s") then
+      biomeEdgeLeft = true
+      biomeEdgeLeftType = Biome.Snow
+    elseif string.find(mapTable[r][c-1], "d") then
+      biomeEdgeLeft = true
+      biomeEdgeLeftType = Biome.Dark
     end
   end
   --right
   if c ~= #mapTable[1] then 
     if string.find(mapTable[r][c+1], "i") or string.find(mapTable[r][c+1], "l") then
-      waterRight = true --return 0, 0, 0
+      waterRight = true
     end
-    if biome == Biome.Grass then
-      if string.find(mapTable[r][c+1], "s") then
-        biomeEdgeRight = true
-        biomeEdge = Biome.Snow
-      elseif string.find(mapTable[r][c+1], "d") then
-        biomeEdgeRight = true
-        biomeEdge = Biome.Dark
-      end
-    end
-  end
-  
-  if waterAbove then
-    if waterLeft then
-      if tileType == TileType.Plain then
-        tileType = TileType.EdgeCorner
-        rot = math.rad(180)
-        offsetX = 1
-        offsetY = 1
-      end
-    elseif waterRight then
-      if tileType == TileType.Plain then
-        tileType = TileType.EdgeCorner
-        rot = math.rad(-90)
-        offsetY = 1
-      end
-    elseif tileType == TileType.Plain then
-      tileType = TileType.Edge
-      rot = math.rad(-90)
-      offsetY = 1
-    end
-  elseif waterBelow then
-    if waterLeft then
-      if tileType == TileType.Plain then
-        tileType = TileType.EdgeCorner
-        rot = math.rad(90)
-        offsetX = 1
-      end
-    elseif WaterRight then
-      if tileType == TileType.Plain then
-        tileType =TileType.EdgeCorner
-      end
-    elseif tileType == TileType.Plain then
-      tileType = TileType.Edge
-      rot = math.rad(90)
-      offsetX = 1
-    end
-  elseif waterLeft then
-    if tileType == TileType.Plain then
-      tileType = TileType.Edge
-      rot = math.rad(180)
-      offsetX = 1
-      offsetY = 1
-    end
-  elseif waterRight then
-    if tileType == TileType.Plain then
-      tileType = TileType.Edge
-    end
-    
-  elseif biomeEdgeAbove then
-    if biomeEdgeLeft then
-      rot = math.rad(180)
-      offsetX = 1
-      offsetY = 1
-      if tileType == TileType.Plain then
-        tileType = TileType.BiomeEdgeCorner
-      elseif tileType == TileType.River then
-        tileType = TileType.BiomeWaterCorner
-      end
-    elseif biomeEdgeRight then
-      rot = math.rad(-90)
-      offsetY = 1
-      if tileType == TileType.Plain then
-        tileType = TileType.BiomeEdgeCorner
-      elseif tileType == TileType.River then
-        tileType = TileType.BiomeWaterCorner 
-      end
-    elseif tileType == TileType.Plain then
-      tileType = TileType.BiomeEdge
-      rot = math.rad(180)
-      offsetY = 1
-      offsetX = 1
-    elseif tileType == TileType.River then
-      tileType = TileType.BiomeWaterEdge
-      rot = math.rad(180)
-      offsetY = 1
-      offsetX = 1
-    end
-  elseif biomeEdgeBelow then
-    if biomeEdgeLeft then
-      rot = math.rad(90)
-      offsetX = 1
-      if tileType == TileType.Plain then
-        tileType = TileType.BiomeEdgeCorner
-      elseif tileType == TileType.River then
-        tileType = TileType.BiomeWaterCorner
-      end
-    elseif biomeEdgeRight then
-      if tileType == TileType.Plain then
-        tileType = TileType.BiomeEdgeCorner
-      elseif tileType == TileType.River or tileType == TileType.Lake then
-        tileType = TileType.BiomeWaterCorner
-      end
-    elseif tileType == TileType.Plain then
-      tileType = TileType.BiomeEdge
-    elseif tileType == TileType.River or tileType == TileType.Lake then
-      tileType = TileType.BiomeWaterEdge
-    end
-  elseif biomeEdgeLeft then
-    if tileType == TileType.Plain then
-      tileType = TileType.BiomeEdge
-      rot = math.rad(90)
-      offsetX = 1
-    elseif tileType == TileType.River or tileType == TileType.Lake then
-      tileType = TileType.BiomeWaterCorner
-      rot = math.rad(90)
-      offsetX = 1
-    end
-  elseif biomeEdgeRight then
-    if tileType == TileType.Plain then
-      tileType = TileType.BiomeEdge
-      rot = math.rad(-90)
-      offsetY = 1
-    elseif tileType == TileType.River or tileType == TileType.Lake then
-      tileType = TileType.BiomeWaterCorner
-      rot = math.rad(-90)
-      offsetY = 1
+    if string.find(mapTable[r][c+1], "s") then
+      biomeEdgeRight = true
+      biomeEdgeRightType = Biome.Snow
+    elseif string.find(mapTable[r][c+1], "d") then
+      biomeEdgeRight = true
+      biomeEdgeRightType = Biome.Dark
     end
   end
   
@@ -580,8 +638,24 @@ function FindTileDir(r, c, b, t)
     offsetX = dirs[rand][2]
     offsetY = dirs[rand][3]
   end
+  
+  edges = 
+  {
+    wl = waterLeft,
+    wr = waterRight,
+    wt = waterAbove,
+    wb = waterBelow,
+    bl = biomeEdgeLeft,
+    blt = biomeEdgeLeftType,
+    br = biomeEdgeRight,
+    brt = biomeEdgeRightType,
+    bt = biomeEdgeAbove,
+    btt = biomeEdgeAboveType,
+    bb = biomeEdgeBelow,
+    bbt = biomeEdgeBelowType
+  }
 
-  return rot, offsetX, offsetY, tileType, biomeEdge
+  return rot, offsetX, offsetY, tileType, edges
   
 end
 
